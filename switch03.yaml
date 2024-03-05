@@ -1,0 +1,60 @@
+substitutions:
+  hostname: "switch03"
+  device_description: Kitchen Lights
+
+esphome:
+  name: ${hostname}
+  comment: ${device_description}
+  platform: ESP8266
+  board: esp01_1m
+
+# web_server:
+#   port: 80
+
+packages:
+  wifi: !include common/wifi.yaml
+  api: !include common/api.yaml
+  logger: !include common/logger.yaml
+  ota: !include common/ota.yaml
+
+sensor:
+  - <<: !include common/uptime.yaml
+#  - <<: !include common/signal.yaml
+  
+text_sensor:
+  - <<: !include common/version.yaml
+
+binary_sensor:
+  - <<: !include common/status.yaml
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "$hostname Reset Button"
+    on_press:
+      - switch.toggle: relay
+  # - platform: gpio
+  #   pin:
+  #     number: GPIO2
+  #     mode: INPUT_PULLUP
+  #     inverted: True
+  #   name: "$hostname Button"
+  #   on_press:
+  #     - switch.toggle: relay
+  #   on_release:
+  #     - switch.toggle: relay
+
+switch:
+  - <<: !include common/restart.yaml
+  - platform: gpio
+    name: "$hostname Switch" 
+    icon: "mdi:lightbulb_outline"
+    pin: GPIO12
+    id: relay
+    restore_mode: ALWAYS_OFF
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes

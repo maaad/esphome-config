@@ -1,0 +1,105 @@
+substitutions:
+  hostname: "radsens"
+  device_description: "Geiger Sensor"
+
+esphome:
+  name: ${hostname}
+  comment: ${device_description}
+  libraries:
+    - Wire
+    - "climateguard/ClimateGuard RadSens"
+  includes:
+    - RadSens1v2/_CG_RadSens.h
+esp8266:
+  board: d1_mini
+
+
+
+packages:
+  wifi: !include common/wifi.yaml
+  api: !include common/api.yaml
+  logger: !include common/logger.yaml
+  ota: !include common/ota.yaml
+
+web_server:
+  port: 80
+  
+i2c:
+  sda: D2
+  scl: D1
+#  scan: true
+#  frequency: 100kHz
+  
+binary_sensor:
+  - <<: !include common/status.yaml
+
+text_sensor:
+  - <<: !include common/version.yaml    
+
+
+sensor:
+  - <<: !include common/uptime.yaml
+  - platform: dht
+    model: SI7021
+    pin: D5
+    humidity:
+      name: "humidity"
+      filters:
+        - offset: 1
+    temperature:
+      name: "temperature"
+      filters:
+        - offset: -1.07
+    update_interval: 60s
+
+  #- <<: !include common/signal.yaml
+  # - platform: bme280
+  #   temperature:
+  #     name: "BME280 Temperature"
+  #     oversampling: 16x
+  #   pressure:
+  #     name: "BME280 Pressure"
+  #   humidity:
+  #     name: "BME280 Humidity"
+  #   address: 0x76
+  #   update_interval: 60s
+
+  - platform: custom
+    lambda: |-
+      auto rad_sens = new MyRadSens();
+      App.register_component(rad_sens);
+      return {rad_sens->IntensityDynamic_Sensor, rad_sens->IntensityStatic_Sensor, rad_sens->CurrentCPM_Sensor, rad_sens->MaxCPM_Sensor, rad_sens->Sensivity_Sensor};
+    sensors:
+      - name: "Dynamic intensity"
+        id: dynamic_intensity
+        accuracy_decimals: 1
+        unit_of_measurement: μR/h
+        state_class: measurement
+      - name: "Static intensity"
+        accuracy_decimals: 1
+        unit_of_measurement: μR/h
+        state_class: measurement
+      - name: "Current CPM"
+        accuracy_decimals: 1
+        unit_of_measurement: CPM
+        state_class: measurement
+      - name: "Max CPM"
+        accuracy_decimals: 1
+        unit_of_measurement: CPM
+      - name: "Device Sensivity"
+        id: device_sensivity
+        entity_category: diagnostic
+
+  # - platform: adc
+  #   pin: A0
+  #   name: "Brightness"
+  #   unit_of_measurement: lx
+  #   device_class: illuminance
+  #   update_interval: 30s
+  #   filters:
+  #     - lambda: |-
+  #         return (x / 10000.0) * 2000000.0;
+
+switch:
+  - <<: !include common/restart.yaml
+

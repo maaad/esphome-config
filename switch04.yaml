@@ -1,0 +1,46 @@
+substitutions:
+  hostname: "switch04"
+  device_description: "PC switch"
+
+esphome:
+  name: ${hostname}
+  comment: ${device_description}
+esp8266:
+  board: d1_mini
+  framework:
+    version: latest
+
+packages:
+  wifi: !include common/wifi.yaml
+  api: !include common/api.yaml
+  logger: !include common/logger.yaml
+  ota: !include common/ota.yaml
+
+# web_server:
+#   port: 80
+    
+binary_sensor:
+  - <<: !include common/status.yaml
+
+text_sensor:
+  - <<: !include common/version.yaml    
+
+
+sensor:
+  - <<: !include common/uptime.yaml
+  #- <<: !include common/signal.yaml
+
+switch:
+  - <<: !include common/restart.yaml
+  - platform: gpio
+    pin: D1
+    inverted: false
+    id: pc_relay
+
+  - platform: template
+    name: "Desktop"
+    turn_on_action:
+      - switch.turn_on: pc_relay
+      - delay: 1s
+      - switch.turn_off: pc_relay
+

@@ -1,0 +1,6 @@
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+  reboot_timeout: 20min
+  fast_connect: on
+  domain: .home

@@ -1,0 +1,5 @@
+.esphome
+secrets.yaml
+common/secrets.yaml
+RadSens1v2
+airqualitysensoryaml.yaml
